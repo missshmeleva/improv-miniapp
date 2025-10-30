@@ -16,19 +16,19 @@ const API_URL = "https://your-backend.com"; // Замени на свой
   }
 
   // Simple local generator (без привязки к бэку)
-  const openings = ['Неожиданная встреча', 'Секретная миссия', 'Потерянный предмет', 'Смена ролей'];
-  const locations = ['Кафе', 'Аэропорт', 'Сцена театра', 'Больница', 'Поезд'];
-  const characters = ['Бариста', 'Контролёр', 'Режиссёр', 'Адвокат', 'Провизор'];
+  let DATA = null; // будет загружено из data.json
 
   function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
   function generateIdea() {
-    return `${random(openings)} · ${random(locations)} · ${random(characters)}`;
+    if (!DATA) return 'Загрузка…';
+    return `${random(DATA['Зачины'])} · ${random(DATA['Локации'])} · ${random(DATA['Персонажи'])}`;
   }
 
   function init() {
     const ideaEl = document.getElementById('idea');
     const btn = document.getElementById('generate');
+    const menu = document.querySelector('.menu');
 
     if (tg) {
       tg.ready();
@@ -47,6 +47,41 @@ const API_URL = "https://your-backend.com"; // Замени на свой
         tg.HapticFeedback.impactOccurred('light');
       }
     });
+
+    // Обработчики меню
+    menu.addEventListener('click', (e) => {
+      const target = e.target.closest('.menu-btn');
+      if (!target) return;
+      const category = target.getAttribute('data-category');
+      const action = target.getAttribute('data-action');
+      if (action === 'random_scene') {
+        ideaEl.textContent = generateIdea();
+        tg?.HapticFeedback?.impactOccurred('light');
+        return;
+      }
+      if (category && DATA && DATA[category]) {
+        ideaEl.textContent = `${category}: ${random(DATA[category])}`;
+        tg?.HapticFeedback?.selectionChanged();
+      }
+    });
+
+    // Загрузка данных из data.json (сгенерирован из data.py)
+    fetch('./data.json', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((json) => {
+        DATA = json;
+      })
+      .catch(() => {
+        // Фолбэк на небольшой набор, если файл недоступен
+        DATA = {
+          'Локации': ['Замок', 'Лес', 'Город', 'Дом', 'Школа'],
+          'Персонажи': ['Бизнесмен', 'Врач', 'Художник', 'Повар'],
+          'Предметы': ['Телефон', 'Портфель', 'Ключи'],
+          'Эмоции': ['Радость', 'Печаль', 'Злость', 'Страх'],
+          'Ситуации': ['Предложение', 'Праздник', 'Авария'],
+          'Зачины': ['У тебя есть товар?', 'Ты уверен в этом?', 'Это ограбление!']
+        };
+      });
   }
 
   if (document.readyState === 'loading') {

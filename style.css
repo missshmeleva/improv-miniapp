@@ -63,6 +63,19 @@ body {
 }
 
 .hint { display: block; margin-top: 10px; color: var(--muted); }
+
+.menu { margin-top: 16px; display: grid; gap: 12px; }
+.menu-row { width: 100%; }
+.menu-btn {
+  width: 100%;
+  text-align: left;
+  padding: 16px;
+  border-radius: 14px;
+  border: 0;
+  background: #0f172a; /* будет переопределено темой Telegram в тёмной */
+  color: #ffffff;
+  font-size: 18px;
+}
   * {
     margin: 0;
     padding: 0;
