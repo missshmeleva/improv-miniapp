@@ -37,12 +37,13 @@ body {
 }
 
 .title { margin: 0 0 4px; font-size: 24px; }
-.subtitle { margin: 0 0 16px; color: var(--muted); }
+.subtitle { margin: 0 0 16px; color: #50534F; }
 
 .card {
   background: var(--card);
   border-radius: 16px;
   padding: 16px;
+  border: 2px solid var(--primary); /* жёлтая рамка в цвет бренда */
 }
 
 .idea {
@@ -78,6 +79,13 @@ body {
 }
 
 .footer-hint { margin-top: 14px; color: var(--muted); font-size: 14px; }
+
+.app-footer {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.app-footer a { color: var(--accent); text-decoration: none; }
   * {
     margin: 0;
     padding: 0;
