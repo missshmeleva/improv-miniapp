@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>Improv Mini App</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script defer src="script.js"></script>
+    <script defer src="script.js?v=2"></script>
   </head>
   <body>
     <main class="container">
@@ -22,16 +22,10 @@
         <div class="menu-row">
           <button class="menu-btn" data-action="random_scene">🎭 Случайная сцена</button>
         </div>
-        <div class="menu-row">
+        <div class="menu-grid">
           <button class="menu-btn" data-category="Зачины">🎬 Зачин</button>
-        </div>
-        <div class="menu-row">
           <button class="menu-btn" data-category="Локации">📍 Локации</button>
-        </div>
-        <div class="menu-row">
           <button class="menu-btn" data-category="Персонажи">👥 Персонажи</button>
-        </div>
-        <div class="menu-row">
           <button class="menu-btn" data-category="Предметы">🎒 Предметы</button>
         </div>
         <div class="menu-row">
@@ -42,7 +36,9 @@
         </div>
       </section>
       <p class="footer-hint">Нажмите на нужную кнопку — в окне выше появится сгенерированная информация.</p>
-      <footer class="app-footer">Генератор придумал и поддерживает <a href="https://t.me/improbiblioteka" target="_blank" rel="noopener">@improbiblioteka</a></footer>
+      <footer class="app-footer">
+        <span class="brand-badge">Генератор придумал и поддерживает <a href="https://t.me/improbiblioteka" target="_blank" rel="noopener">@improbiblioteka</a></span>
+      </footer>
     </main>
   </body>
   </html>
