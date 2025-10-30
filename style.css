@@ -16,8 +16,8 @@
   --text: #0f0f0f;
   --muted: #6b7280;
   --card: #f3f4f6;
-  --btn-bg: #50534F; /* цвет кнопок на белом фоне */
-  --btn-text: #ffffff;
+  --btn-bg: var(--primary);
+  --btn-text: #111827; /* чёрный/тёмный текст на жёлтом */
   --accent: var(--primary-dark);
   --subtitle: #50534F; /* цвет подзаголовка в светлой теме */
 }
