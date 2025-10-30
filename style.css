@@ -19,6 +19,7 @@
   --btn-bg: #50534F; /* цвет кнопок на белом фоне */
   --btn-text: #ffffff;
   --accent: var(--primary-dark);
+  --subtitle: #50534F; /* цвет подзаголовка в светлой теме */
 }
 
 * { box-sizing: border-box; }
@@ -37,19 +38,24 @@ body {
 }
 
 .title { margin: 0 0 4px; font-size: 24px; }
-.subtitle { margin: 0 0 16px; color: #50534F; }
+.subtitle { margin: 0 0 16px; color: var(--subtitle); }
 
 .card {
   background: var(--card);
   border-radius: 16px;
   padding: 16px;
   border: 2px solid var(--primary); /* жёлтая рамка в цвет бренда */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 88px;
 }
 
 .idea {
   font-size: 18px;
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin: 0; /* центрируем текст без лишнего нижнего отступа */
 }
 
 .actions { display: flex; gap: 8px; }
@@ -82,18 +88,20 @@ body {
 .footer-hint { margin-top: 14px; color: var(--muted); font-size: 14px; }
 
 .app-footer {
-  margin-top: 12px;
+  margin-top: 24px;
   color: var(--muted);
   font-size: 13px;
+  text-align: center;
 }
-.app-footer a { color: var(--accent); text-decoration: none; }
+.app-footer a { color: inherit; text-decoration: none; }
 
 .brand-badge {
   display: inline-block;
-  border: 2px solid var(--primary);
+  background: var(--primary);
+  color: #111827;
   border-radius: 12px;
-  padding: 8px 12px;
-  color: inherit;
+  padding: 10px 16px;
+  font-weight: 600;
 }
   * {
     margin: 0;
