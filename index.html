@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Импровизация</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 Импровизация</h1>
+    <p class="subtitle">Выберите категорию или получите случайную сцену</p>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Improv Mini App</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script defer src="script.js"></script>
+  </head>
+  <body>
+    <main class="container">
+      <h1 class="title">Импровизация</h1>
+      <p class="subtitle">Лёгкий генератор идеи для сцены</p>
+
+      <section class="card">
+        <div id="idea" class="idea">Нажмите «Сгенерировать»</div>
+        <div class="actions">
+          <button id="generate" class="btn">Сгенерировать</button>
+        </div>
+        <small class="hint">Откроется в Telegram Mini App. Тема и цвета подстраиваются автоматически.</small>
+      </section>
+    </main>
+  </body>
+  </html>
+    <div id="menu" class="menu">
+      <button class="btn primary" onclick="getRandomScene()">🎭 Случайная сцена</button>
+      <button class="btn" onclick="openCategory('Зачины')">🎬 Зачин</button>
+      <button class="btn" onclick="openCategory('Локации')">📍 Локации</button>
+      <button class="btn" onclick="openCategory('Персонажи')">👥 Персонажи</button>
+      <button class="btn" onclick="openCategory('Предметы')">🎒 Предметы</button>
+      <button class="btn" onclick="openCategory('Эмоции')">😊 Эмоции</button>
+      <button class="btn" onclick="openCategory('Ситуации')">🎬 Ситуации</button>
+    </div>
+
+    <div id="result" class="result hidden">
+      <div class="card">
+        <h2 id="category"></h2>
+        <p id="name"></p>
+        <div class="actions">
+          <button class="btn small" id="another-btn">🔄 Другой</button>
+          <button class="btn small" onclick="getRandomScene()">🎭 Новая сцена</button>
+          <button class="btn small" onclick="showMenu()">Меню</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
