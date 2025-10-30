@@ -10,9 +10,18 @@ const API_URL = "https://your-backend.com"; // Замени на свой
     if (params.text_color) css.setProperty('--text', params.text_color);
     if (params.hint_color) css.setProperty('--muted', params.hint_color);
     if (params.secondary_bg_color) css.setProperty('--card', params.secondary_bg_color);
-    if (params.button_color) css.setProperty('--btn-bg', params.button_color);
-    if (params.button_text_color) css.setProperty('--btn-text', params.button_text_color);
     if (params.link_color) css.setProperty('--accent', params.link_color);
+  }
+
+  function applyBrandButtons(colorScheme) {
+    const css = document.documentElement.style;
+    if (colorScheme === 'dark') {
+      css.setProperty('--btn-bg', 'var(--primary)');
+      css.setProperty('--btn-text', '#111827');
+    } else {
+      css.setProperty('--btn-bg', '#50534F');
+      css.setProperty('--btn-text', '#ffffff');
+    }
   }
 
   // Simple local generator (без привязки к бэку)
@@ -33,7 +42,11 @@ const API_URL = "https://your-backend.com"; // Замени на свой
       tg.ready();
       tg.expand();
       applyTheme(tg.themeParams);
-      tg.onEvent('themeChanged', () => applyTheme(tg.themeParams));
+      applyBrandButtons(tg.colorScheme);
+      tg.onEvent('themeChanged', () => {
+        applyTheme(tg.themeParams);
+        applyBrandButtons(tg.colorScheme);
+      });
 
       tg.MainButton.setText('Закрыть');
       tg.MainButton.show();
