@@ -56,6 +56,7 @@ body {
   font-size: 18px;
   line-height: 1.5;
   margin: 0; /* центрируем текст без лишнего нижнего отступа */
+  transform: translateY(3px); /* чуть ниже по просьбе пользователя */
 }
 
 .actions { display: flex; gap: 8px; }
