@@ -27,7 +27,6 @@ const API_URL = "https://your-backend.com"; // Замени на свой
 
   function init() {
     const ideaEl = document.getElementById('idea');
-    const btn = document.getElementById('generate');
     const menu = document.querySelector('.menu');
 
     if (tg) {
@@ -40,13 +39,6 @@ const API_URL = "https://your-backend.com"; // Замени на свой
       tg.MainButton.show();
       tg.onEvent('mainButtonClicked', () => tg.close());
     }
-
-    btn.addEventListener('click', () => {
-      ideaEl.textContent = generateIdea();
-      if (tg && tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('light');
-      }
-    });
 
     // Обработчики меню
     menu.addEventListener('click', (e) => {
