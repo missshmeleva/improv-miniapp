@@ -1,213 +1,145 @@
-:root {
-    --primary: #F4BF56;
-    --primary-dark: #e0a800;
-    --bg: #1a1a1a;
-    --card: #2d2d2d;
-    --text: #ffffff;
-    --text-light: #cccccc;
-  }
-:root {
-  /* Базовые цвета бренда */
-  --primary: #F4BF56;        /* основной */
-  --primary-dark: #e0a800;   /* акцент/нажатие */
+const API_URL = "https://your-backend.com"; // Замени на свой
+(function () {
+  const tg = window.Telegram ? window.Telegram.WebApp : null;
 
-  /* Светлая тема по умолчанию */
-  --bg: #ffffff;
-  --text: #0f0f0f;
-  --muted: #6b7280;
-  --card: #f3f4f6;
-  --btn-bg: #50534F; /* цвет кнопок на белом фоне */
-  --btn-text: #ffffff;
-  --accent: var(--primary-dark);
-  --subtitle: #50534F; /* цвет подзаголовка в светлой теме */
+  // Theme sync from Telegram
+  function applyTheme(params) {
+    const css = document.documentElement.style;
+    if (!params) return;
+    if (params.bg_color) css.setProperty('--bg', params.bg_color);
+    if (params.text_color) css.setProperty('--text', params.text_color);
+    if (params.hint_color) css.setProperty('--muted', params.hint_color);
+    if (params.secondary_bg_color) css.setProperty('--card', params.secondary_bg_color);
+    if (params.link_color) css.setProperty('--accent', params.link_color);
+  }
+
+  function applyBrandButtons(colorScheme) {
+    const css = document.documentElement.style;
+    if (colorScheme === 'dark') {
+      css.setProperty('--btn-bg', 'var(--primary)');
+      css.setProperty('--btn-text', '#111827');
+      css.setProperty('--subtitle', 'var(--muted)');
+    } else {
+      css.setProperty('--btn-bg', '#50534F');
+      css.setProperty('--btn-text', '#ffffff');
+      css.setProperty('--subtitle', '#50534F');
+    }
+  }
+
+  // Simple local generator (без привязки к бэку)
+  let DATA = null; // будет загружено из data.json
+
+  function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function generateIdea() {
+    if (!DATA) return 'Загрузка…';
+    return `${random(DATA['Зачины'])} · ${random(DATA['Локации'])} · ${random(DATA['Персонажи'])}`;
+  }
+
+  function init() {
+    const ideaEl = document.getElementById('idea');
+    const menu = document.querySelector('.menu');
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      applyTheme(tg.themeParams);
+      applyBrandButtons(tg.colorScheme);
+      tg.onEvent('themeChanged', () => {
+        applyTheme(tg.themeParams);
+        applyBrandButtons(tg.colorScheme);
+      });
+
+      tg.MainButton.setText('Закрыть');
+      tg.MainButton.show();
+      tg.onEvent('mainButtonClicked', () => tg.close());
+    }
+
+    // Обработчики меню
+    menu.addEventListener('click', (e) => {
+      const target = e.target.closest('.menu-btn');
+      if (!target) return;
+      const category = target.getAttribute('data-category');
+      const action = target.getAttribute('data-action');
+      if (action === 'random_scene') {
+        ideaEl.textContent = generateIdea();
+        tg?.HapticFeedback?.impactOccurred('light');
+        return;
+      }
+      if (category && DATA && DATA[category]) {
+        ideaEl.textContent = `${category}: ${random(DATA[category])}`;
+        tg?.HapticFeedback?.selectionChanged();
+      }
+    });
+
+    // Загрузка данных из data.json (сгенерирован из data.py)
+    fetch('./data.json', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((json) => {
+        DATA = json;
+      })
+      .catch(() => {
+        // Фолбэк на небольшой набор, если файл недоступен
+        DATA = {
+          'Локации': ['Замок', 'Лес', 'Город', 'Дом', 'Школа'],
+          'Персонажи': ['Бизнесмен', 'Врач', 'Художник', 'Повар'],
+          'Предметы': ['Телефон', 'Портфель', 'Ключи'],
+          'Эмоции': ['Радость', 'Печаль', 'Злость', 'Страх'],
+          'Ситуации': ['Предложение', 'Праздник', 'Авария'],
+          'Зачины': ['У тебя есть товар?', 'Ты уверен в этом?', 'Это ограбление!']
+        };
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+let currentItemKey = null;
+let currentCategory = null;
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+function showMenu() {
+  document.getElementById("menu").classList.remove("hidden");
+  document.getElementById("result").classList.add("hidden");
 }
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+function showResult(data) {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("category").textContent = data.category;
+  document.getElementById("name").textContent = data.name;
+
+  currentItemKey = data.item_key;
+  currentCategory = data.category;
+
+  const anotherBtn = document.getElementById("another-btn");
+  anotherBtn.onclick = () => {
+    if (currentCategory) {
+      openCategory(currentCategory);
+    } else {
+      getRandomScene();
+    }
+  };
 }
 
-.container {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 24px 16px calc(env(safe-area-inset-bottom, 0) + 24px);
+async function getRandomScene() {
+  const res = await fetch(`${API_URL}/random-scene`);
+  const data = await res.json();
+  showResult(data);
 }
 
-.title { margin: 0 0 4px; font-size: 24px; }
-.subtitle { margin: 0 0 16px; color: var(--subtitle); }
-
-.card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 16px;
-  border: 2px solid var(--primary); /* жёлтая рамка в цвет бренда */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  min-height: 88px;
+async function openCategory(cat) {
+  const res = await fetch(`${API_URL}/category/${cat}`);
+  const data = await res.json();
+  showResult(data);
 }
 
-.idea {
-  font-size: 18px;
-  line-height: 1.5;
-  margin: 0; /* центрируем текст без лишнего нижнего отступа */
-}
-
-.actions { display: flex; gap: 8px; }
-.btn {
-  appearance: none;
-  border: 0;
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-size: 16px;
-  background: var(--btn-bg);
-  color: var(--btn-text);
-}
-
-.hint { display: block; margin-top: 10px; color: var(--muted); }
-
-.menu { margin-top: 16px; display: grid; gap: 12px; }
-.menu-row { width: 100%; }
-.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.menu-btn {
-  width: 100%;
-  text-align: left;
-  padding: 16px;
-  border-radius: 14px;
-  border: 0;
-  background: var(--btn-bg);
-  color: var(--btn-text);
-  font-size: 18px;
-}
-
-.footer-hint { margin-top: 14px; color: var(--muted); font-size: 14px; }
-
-.app-footer {
-  margin-top: 24px;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
-}
-.app-footer a { color: inherit; text-decoration: none; }
-
-.brand-badge {
-  display: inline-block;
-  background: var(--primary);
-  color: #111827;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-weight: 600;
-}
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    padding: 20px;
-    min-height: 100vh;
-  }
-  
-  .container {
-    max-width: 500px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 8px;
-    color: var(--primary);
-  }
-  
-  .subtitle {
-    color: var(--text-light);
-    margin-bottom: 30px;
-    font-size: 1rem;
-  }
-  
-  .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .btn {
-    background: var(--card);
-    color: var(--text);
-    border: none;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: left;
-    font-weight: 500;
-  }
-  
-  .btn.primary {
-    background: var(--primary);
-    color: #000;
-    font-weight: 600;
-  }
-  
-  .btn:hover, .btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(244, 191, 86, 0.3);
-  }
-  
-  .btn:active {
-    transform: translateY(0);
-  }
-  
-  .result {
-    margin-top: 30px;
-  }
-  
-  .card {
-    background: var(--card);
-    padding: 24px;
-    border-radius: 16px;
-    text-align: center;
-    animation: fadeIn 0.4s ease;
-  }
-  
-  .card h2 {
-    color: var(--primary);
-    margin-bottom: 12px;
-    font-size: 1.4rem;
-  }
-  
-  .card p {
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-    line-height: 1.5;
-  }
-  
-  .actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  
-  .btn.small {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .hidden { display: none; }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+// Показать меню при старте
+showMenu();
