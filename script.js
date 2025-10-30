@@ -15,15 +15,9 @@ const API_URL = "https://your-backend.com"; // Замени на свой
 
   function applyBrandButtons(colorScheme) {
     const css = document.documentElement.style;
-    if (colorScheme === 'dark') {
-      css.setProperty('--btn-bg', 'var(--primary)');
-      css.setProperty('--btn-text', '#111827');
-      css.setProperty('--subtitle', 'var(--muted)');
-    } else {
-      css.setProperty('--btn-bg', '#50534F');
-      css.setProperty('--btn-text', '#ffffff');
-      css.setProperty('--subtitle', '#50534F');
-    }
+    css.setProperty('--btn-bg', 'var(--primary)');
+    css.setProperty('--btn-text', '#111827');
+    css.setProperty('--subtitle', '#50534F');
   }
 
   // Simple local generator (без привязки к бэку)
