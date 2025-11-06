@@ -1,8 +1,28 @@
-const API_URL = "https://your-backend.com"; // Замени на свой
+/* Mini App logic */
 (function () {
   const tg = window.Telegram ? window.Telegram.WebApp : null;
 
-  // Theme sync from Telegram
+  let categories = null; // данные для основных кнопок
+  let characterGroups = null; // подкатегории персонажей
+  const ideaEl = document.getElementById('idea');
+  const menu = document.querySelector('.menu');
+  const characterSubmenu = document.getElementById('character-submenu');
+
+  const CHARACTER_ORDER = [
+    { key: 'Какой?', label: '🧠 Какой?' },
+    { key: 'Профессии', label: '💼 Профессии' },
+    { key: 'Отношения', label: '❤️ Отношения' },
+    { key: 'Российские селебрити', label: '⭐ Российские селебрити' },
+    { key: 'Персонажи: фильмы, комиксы, сериалы', label: '🎬 Персонажи: фильмы, комиксы, сериалы' },
+    { key: 'Персонажи: мультфильмов', label: '🎨 Персонажи: мультфильмов' },
+    { key: 'Персонажи: литературы', label: '📚 Персонажи: литературы' }
+  ];
+
+  function getAvailableCharacterGroups() {
+    if (!characterGroups) return [];
+    return CHARACTER_ORDER.filter(({ key }) => Array.isArray(characterGroups[key]) && characterGroups[key].length);
+  }
+
   function applyTheme(params) {
     const css = document.documentElement.style;
     if (!params) return;
@@ -13,35 +33,87 @@ const API_URL = "https://your-backend.com"; // Замени на свой
     if (params.link_color) css.setProperty('--accent', params.link_color);
   }
 
-  function applyBrandButtons(colorScheme) {
+  function applyBrandButtons() {
     const css = document.documentElement.style;
     css.setProperty('--btn-bg', 'var(--primary)');
     css.setProperty('--btn-text', '#111827');
     css.setProperty('--subtitle', '#50534F');
   }
 
-  // Simple local generator (без привязки к бэку)
-  let DATA = null; // будет загружено из data.json
+  function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
 
-  function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function setIdeaPlain(text) {
+    ideaEl.textContent = text;
+  }
 
-  function generateIdea() {
-    if (!DATA) return 'Загрузка…';
-    return `${random(DATA['Зачины'])} · ${random(DATA['Локации'])} · ${random(DATA['Персонажи'])}`;
+  function setIdeaResult(label, value) {
+    ideaEl.innerHTML = `<strong>${label}</strong>: ${value}`;
+  }
+
+  const SCENE_MAPPING = [
+    ['Зачины', 'Зачин'],
+    ['Локации', 'Локация'],
+    ['Персонажи', 'Персонаж'],
+    ['Предметы', 'Предмет'],
+    ['Эмоции', 'Эмоция'],
+    ['Ситуации', 'Ситуация'],
+    ['Жанры', 'Жанр']
+  ];
+
+  function generateSceneParts() {
+    if (!categories) return null;
+    const available = SCENE_MAPPING.filter(([key]) => Array.isArray(categories[key]) && categories[key].length);
+    if (!available.length) return [];
+    const maxCount = available.length;
+    const count = Math.max(1, Math.floor(Math.random() * maxCount) + 1);
+    const selected = shuffle(available).slice(0, count);
+    return selected.map(([key, label]) => ({ label, value: random(categories[key]) }));
+  }
+
+  function showRandomScene() {
+    const parts = generateSceneParts();
+    if (!parts) {
+      setIdeaPlain('Загрузка…');
+      return;
+    }
+    ideaEl.innerHTML = parts
+      .map(({ label, value }) => `<strong>${label}</strong>: ${value}`)
+      .join('<br>');
+  }
+
+  function renderCharacterSubmenu() {
+    if (!characterSubmenu) return;
+    if (!characterGroups) {
+      characterSubmenu.innerHTML = `<p class="submenu-placeholder">Загрузка…</p>`;
+      return;
+    }
+
+    const available = CHARACTER_ORDER.filter(({ key }) => Array.isArray(characterGroups[key]) && characterGroups[key].length);
+    const singleKey = 'Отношения';
+    const singleItem = available.find(({ key }) => key === singleKey);
+    const restItems = available.filter(({ key }) => key !== singleKey);
+
+    const restButtons = restItems
+      .map(({ key, label }) => `<button class="menu-btn" data-subcategory="${key}">${label}</button>`)
+      .join('');
+
+    characterSubmenu.innerHTML = `
+      ${singleItem ? `<div class="menu-row"><button class="menu-btn" data-subcategory="${singleItem.key}">${singleItem.label}</button></div>` : ''}
+      ${restButtons ? `<div class="menu-grid submenu-grid">${restButtons}</div>` : ''}
+    `;
   }
 
   function init() {
-    const ideaEl = document.getElementById('idea');
-    const menu = document.querySelector('.menu');
-
     if (tg) {
       tg.ready();
       tg.expand();
       applyTheme(tg.themeParams);
-      applyBrandButtons(tg.colorScheme);
+      applyBrandButtons();
       tg.onEvent('themeChanged', () => {
         applyTheme(tg.themeParams);
-        applyBrandButtons(tg.colorScheme);
+        applyBrandButtons();
       });
 
       tg.MainButton.setText('Закрыть');
@@ -49,40 +121,92 @@ const API_URL = "https://your-backend.com"; // Замени на свой
       tg.onEvent('mainButtonClicked', () => tg.close());
     }
 
-    // Обработчики меню
     menu.addEventListener('click', (e) => {
       const target = e.target.closest('.menu-btn');
       if (!target) return;
-      const category = target.getAttribute('data-category');
-      const action = target.getAttribute('data-action');
+      const category = target.dataset.category;
+      const action = target.dataset.action;
+
       if (action === 'random_scene') {
-        ideaEl.textContent = generateIdea();
+        showRandomScene();
         tg?.HapticFeedback?.impactOccurred('light');
         return;
       }
-      if (category && DATA && DATA[category]) {
-        ideaEl.textContent = `${category}: ${random(DATA[category])}`;
+
+      if (category === 'Персонажи') {
+        const combination = getCharacterCombination();
+        if (combination) {
+          ideaEl.innerHTML = combination.map(({ label, value }) => `<strong>${label}</strong>: ${value}`).join('<br>');
+          tg?.HapticFeedback?.selectionChanged();
+        } else {
+          setIdeaPlain('Нет данных по персонажам');
+        }
+        return;
+      }
+
+      if (category && categories && categories[category]) {
+        setIdeaResult(category, random(categories[category]));
         tg?.HapticFeedback?.selectionChanged();
       }
     });
 
-    // Загрузка данных из data.json (сгенерирован из data.py)
+    characterSubmenu?.addEventListener('click', (e) => {
+      const target = e.target.closest('.menu-btn');
+      if (!target) return;
+      const subcategory = target.dataset.subcategory;
+      if (subcategory && characterGroups && characterGroups[subcategory]) {
+        setIdeaResult(subcategory, random(characterGroups[subcategory]));
+        tg?.HapticFeedback?.selectionChanged();
+      }
+    });
+
     fetch('./data.json', { cache: 'no-store' })
       .then((r) => r.json())
       .then((json) => {
-        DATA = json;
+        categories = json.categories;
+        characterGroups = json.characterGroups;
+        renderCharacterSubmenu();
       })
       .catch(() => {
-        // Фолбэк на небольшой набор, если файл недоступен
-        DATA = {
+        categories = {
           'Локации': ['Замок', 'Лес', 'Город', 'Дом', 'Школа'],
           'Персонажи': ['Бизнесмен', 'Врач', 'Художник', 'Повар'],
           'Предметы': ['Телефон', 'Портфель', 'Ключи'],
           'Эмоции': ['Радость', 'Печаль', 'Злость', 'Страх'],
           'Ситуации': ['Предложение', 'Праздник', 'Авария'],
+          'Жанры': ['Фантастика', 'Фэнтези', 'Комедия'],
           'Зачины': ['У тебя есть товар?', 'Ты уверен в этом?', 'Это ограбление!']
         };
+        characterGroups = {
+          'Отношения': ['Брат и сестра', 'Соседи', 'Коллеги'],
+          'Профессии': ['Бизнесмен', 'Врач', 'Художник', 'Повар'],
+          'Персонажи: фильмы, комиксы, сериалы': ['Шерлок Холмс', 'Бэтмен', 'Нео'],
+          'Персонажи: мультфильмов': ['Шрек', 'Чебурашка', 'Спанч Боб'],
+          'Персонажи: литературы': ['Гарри Поттер', 'Анна Каренина', 'Дон Кихот']
+        };
+        renderCharacterSubmenu();
       });
+  }
+
+  function getCharacterCombination() {
+    const availableGroups = getAvailableCharacterGroups();
+    if (!availableGroups.length) return null;
+    const maxCombo = Math.min(3, availableGroups.length);
+    const comboSize = Math.max(2, Math.floor(Math.random() * maxCombo) + 1);
+    const selected = shuffle(availableGroups).slice(0, comboSize);
+    return selected.map(({ key, label }) => ({
+      label,
+      value: random(characterGroups[key])
+    }));
+  }
+
+  function shuffle(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
   }
 
   if (document.readyState === 'loading') {
@@ -90,50 +214,6 @@ const API_URL = "https://your-backend.com"; // Замени на свой
   } else {
     init();
   }
+
+  renderCharacterSubmenu();
 })();
-
-let currentItemKey = null;
-let currentCategory = null;
-
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
-
-function showMenu() {
-  document.getElementById("menu").classList.remove("hidden");
-  document.getElementById("result").classList.add("hidden");
-}
-
-function showResult(data) {
-  document.getElementById("menu").classList.add("hidden");
-  document.getElementById("result").classList.remove("hidden");
-  document.getElementById("category").textContent = data.category;
-  document.getElementById("name").textContent = data.name;
-
-  currentItemKey = data.item_key;
-  currentCategory = data.category;
-
-  const anotherBtn = document.getElementById("another-btn");
-  anotherBtn.onclick = () => {
-    if (currentCategory) {
-      openCategory(currentCategory);
-    } else {
-      getRandomScene();
-    }
-  };
-}
-
-async function getRandomScene() {
-  const res = await fetch(`${API_URL}/random-scene`);
-  const data = await res.json();
-  showResult(data);
-}
-
-async function openCategory(cat) {
-  const res = await fetch(`${API_URL}/category/${cat}`);
-  const data = await res.json();
-  showResult(data);
-}
-
-// Показать меню при старте
-showMenu();
