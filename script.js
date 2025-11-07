@@ -8,15 +8,20 @@
   const menu = document.querySelector('.menu');
   const characterSubmenu = document.getElementById('character-submenu');
 
-  const CHARACTER_ORDER = [
+  const CHARACTER_ATTRS = [
     { key: 'Какой?', label: '🧠 Какой?' },
     { key: 'Профессии', label: '💼 Профессии' },
-    { key: 'Отношения', label: '❤️ Отношения' },
+    { key: 'Отношения', label: '❤️ Отношения' }
+  ];
+
+  const CHARACTER_ROLES = [
     { key: 'Звëзды TV', label: '⭐ Звëзды TV' },
     { key: 'Персонажи: комиксы и TV', label: '🎬 Персонажи: комиксы и TV' },
     { key: 'Персонажи: мультфильмов', label: '🎨 Персонажи: мультфильмов' },
     { key: 'Персонажи: литературы', label: '📚 Персонажи: литературы' }
   ];
+
+  const CHARACTER_ORDER = [...CHARACTER_ATTRS, ...CHARACTER_ROLES];
 
   function getAvailableCharacterGroups() {
     if (!characterGroups) return [];
@@ -189,15 +194,26 @@
   }
 
   function getCharacterCombination() {
-    const availableGroups = getAvailableCharacterGroups();
-    if (!availableGroups.length) return null;
-    const maxCombo = Math.min(3, availableGroups.length);
-    const comboSize = Math.max(2, Math.floor(Math.random() * maxCombo) + 1);
-    const selected = shuffle(availableGroups).slice(0, comboSize);
-    return selected.map(({ key, label }) => ({
-      label,
-      value: random(characterGroups[key])
-    }));
+    if (!characterGroups) return null;
+    
+    const result = [];
+    
+    // Берём случайно из атрибутов (Какой?, Профессии, Отношения)
+    const availableAttrs = CHARACTER_ATTRS.filter(({ key }) => Array.isArray(characterGroups[key]) && characterGroups[key].length);
+    const attrCount = Math.floor(Math.random() * (availableAttrs.length + 1));
+    const selectedAttrs = shuffle(availableAttrs).slice(0, attrCount);
+    selectedAttrs.forEach(({ key, label }) => {
+      result.push({ label, value: random(characterGroups[key]) });
+    });
+    
+    // Добавляем одну из ролей (Звёзды TV, Персонажи: комиксы и TV и т.д.)
+    const availableRoles = CHARACTER_ROLES.filter(({ key }) => Array.isArray(characterGroups[key]) && characterGroups[key].length);
+    if (availableRoles.length) {
+      const pickedRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+      result.push({ label: pickedRole.label, value: random(characterGroups[pickedRole.key]) });
+    }
+    
+    return result.length ? result : null;
   }
 
   function shuffle(arr) {
