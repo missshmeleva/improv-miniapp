@@ -69,12 +69,23 @@
 
   function generateSceneParts() {
     if (!categories) return null;
-    const available = SCENE_MAPPING.filter(([key]) => Array.isArray(categories[key]) && categories[key].length);
+    const available = SCENE_MAPPING.filter(([key]) => {
+      if (key === 'Персонажи') return false; // Персонажей генерируем отдельно
+      return Array.isArray(categories[key]) && categories[key].length;
+    });
     if (!available.length) return [];
     const maxCount = available.length;
     const count = Math.max(1, Math.floor(Math.random() * maxCount) + 1);
     const selected = shuffle(available).slice(0, count);
-    return selected.map(([key, label]) => ({ label, value: random(categories[key]) }));
+    const parts = selected.map(([key, label]) => ({ label, value: random(categories[key]) }));
+    
+    // Добавляем персонажа через комбинацию атрибутов + роль
+    const charCombo = getCharacterCombination();
+    if (charCombo && charCombo.length) {
+      parts.push(...charCombo);
+    }
+    
+    return parts;
   }
 
   function showRandomScene() {
